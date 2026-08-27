@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { workspaceIdParamSchema } from "../validators/workspace.validator.js";
-import { bulkDeleteSourcesSchema, createSourceSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
-import { bulkDeleteSourcesForWorkspace, createTextOrMarkdownSource, deleteSourceForWorkspace, getSourceForWorkspace, listSourcesForWorkspace } from "../services/source.service.js";
+import { bulkDeleteSourcesSchema, createSourceSchema, importWebsiteSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
+import { bulkDeleteSourcesForWorkspace, createTextOrMarkdownSource, deleteSourceForWorkspace, getSourceForWorkspace, importWebsiteSource, listSourcesForWorkspace, uploadPdfSource } from "../services/source.service.js";
+import { ValidationError } from "../types/app-error.js";
 
 export async function listSources(req: Request, res: Response) {
     const { workspaceId } = workspaceIdParamSchema.parse(req.params);
@@ -54,4 +55,21 @@ export async function bulkDeleteSources(req: Request, res: Response) {
         input.sourceIds,
     );
     res.status(204).send();
+}
+
+export async function uploadPdf(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    if (!req.file) throw new ValidationError("PDF file is required");
+
+    const title = typeof req.body.title === "string" ? req.body.title : undefined;
+    const source = await uploadPdfSource(workspaceId, req.session.user.id, req.file, title);
+    res.status(201).json(source);
+}
+
+export async function importWebsites(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = importWebsiteSchema.parse(req.body);
+    const source = await importWebsiteSource(workspaceId, req.session.user.id, input);
+
+    res.status(201).json(source);
 }

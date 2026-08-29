@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { asyncHandler } from "../utils/async-handler.js";
-import { bulkDeleteSources, createSource, deleteSource, getSource, importWebsites, listSources, uploadPdf } from "../controllers/soure.controller.js";
+import { bulkDeleteSources, createSource, deleteSource, getSource, importWebsites, importYoutube, listSources, uploadPdf } from "../controllers/soure.controller.js";
 import { uploadSinglePdf } from "../middleware/upload.middleware.js";
 
 export const sourceRoutes = Router({ mergeParams: true });
@@ -14,7 +14,7 @@ sourceRoutes.post(
     asyncHandler(uploadPdf),
 );
 sourceRoutes.post("/import/website", asyncHandler(importWebsites));
-// sourceRoutes.post("/import/youtube", asyncHandler(importYoutube));
+sourceRoutes.post("/import/youtube", asyncHandler(importYoutube));
 // sourceRoutes.post("/import/web-search", asyncHandler(importWebSearch));
 sourceRoutes.post("/bulk-delete", asyncHandler(bulkDeleteSources));
 // sourceRoutes.post("/reprocess", asyncHandler(reprocessSources));

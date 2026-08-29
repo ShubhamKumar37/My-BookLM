@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { workspaceIdParamSchema } from "../validators/workspace.validator.js";
-import { bulkDeleteSourcesSchema, createSourceSchema, importWebsiteSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
-import { bulkDeleteSourcesForWorkspace, createTextOrMarkdownSource, deleteSourceForWorkspace, getSourceForWorkspace, importWebsiteSource, listSourcesForWorkspace, uploadPdfSource } from "../services/source.service.js";
+import { bulkDeleteSourcesSchema, createSourceSchema, importWebsiteSchema, importYoutubeSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
+import { bulkDeleteSourcesForWorkspace, createTextOrMarkdownSource, deleteSourceForWorkspace, getSourceForWorkspace, importWebsiteSource, importYoutubeSource, listSourcesForWorkspace, uploadPdfSource } from "../services/source.service.js";
 import { ValidationError } from "../types/app-error.js";
 
 export async function listSources(req: Request, res: Response) {
@@ -70,6 +70,14 @@ export async function importWebsites(req: Request, res: Response) {
     const { workspaceId } = workspaceIdParamSchema.parse(req.params);
     const input = importWebsiteSchema.parse(req.body);
     const source = await importWebsiteSource(workspaceId, req.session.user.id, input);
+
+    res.status(201).json(source);
+}
+
+export async function importYoutube(req: Request, res: Response) {
+    const { workspaceId } = workspaceIdParamSchema.parse(req.params);
+    const input = importYoutubeSchema.parse(req.body);
+    const source = await importYoutubeSource(workspaceId, req.session.user.id, input);
 
     res.status(201).json(source);
 }

@@ -1,9 +1,10 @@
 import { uploadPdfToCloudinary } from "../lib/cloudinary.js";
 import { scrapeWebsite } from "../lib/firecrawl.js";
 import { extractPdfFromBuffer } from "../lib/pdf.js";
+import { fetchYoutubeTranscript } from "../lib/youtube.js";
 import { createSource, createSourceRecord, deleteSourceRecord, findSourceByIdAndWorkspaceId, findSourcesByWorkspaceId } from "../repository/source.repository.js";
 import { NotFoundError } from "../types/app-error.js";
-import { CreateSourceInput, ImportWebsiteInput, ListSourcesQuery } from "../validators/source.validator.js";
+import { CreateSourceInput, ImportWebsiteInput, ImportYoutubeInput, ListSourcesQuery } from "../validators/source.validator.js";
 import { getWorkspaceByIdForUserId } from "./workspace.services.js";
 
 export async function createAndProcessSource(
@@ -134,6 +135,28 @@ export async function uploadPdfSource(
             publicId: upload.publicId,
             resourceType: upload.resourceType,
             pageCount,
+        }
+    });
+}
+
+export async function importYoutubeSource(
+    workspaceId: string,
+    userId: string,
+    input: ImportYoutubeInput
+) {
+    await getWorkspaceByIdForUserId(workspaceId, userId);
+
+    const transcript = await fetchYoutubeTranscript(input.url);
+
+    return await createAndProcessSource({
+        workspaceId,
+        status: "PENDING",
+        title: input.title || `YOUTUBE ${transcript.videoId}`,
+        content: transcript.content,
+        type: "YOUTUBE",
+        url: input.url,
+        metadata: {
+            videoId: transcript.videoId
         }
     });
 }

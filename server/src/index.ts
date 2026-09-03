@@ -4,14 +4,18 @@ import { config } from "./config.js";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import cors from "cors";
-import { registerRoutes } from "./routes/indes.js";
+import { registerRoutes } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
+import { serve } from "inngest/express";
+import { inngest } from "./inngest/client.js"
+import { functions } from "./inngest/index.js"
+
+const PORT = process.env.PORT;
+
 const app = express();
-app.all('/api/auth/{*any}', toNodeHandler(auth));
-
-app.use(express.json());
-
 const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 app.use(
     cors({
@@ -19,10 +23,11 @@ app.use(
         credentials: true,
     }),
 );
-
+app.use(express.json());
+app.use("/api/inngest", serve({ client: inngest, functions }));
 registerRoutes(app);
 app.use(errorHandler);
 
-app.listen(3000, () => {
-    console.log(`Server is running on http://localhost:${config.PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 }); 

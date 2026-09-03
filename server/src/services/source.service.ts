@@ -1,6 +1,7 @@
 import { uploadPdfToCloudinary } from "../lib/cloudinary.js";
 import { scrapeWebsite } from "../lib/firecrawl.js";
 import { extractPdfFromBuffer } from "../lib/pdf.js";
+import { enqueueSourceProcessing } from "../lib/source-events.js";
 import { fetchYoutubeTranscript } from "../lib/youtube.js";
 import { createSource, createSourceRecord, deleteSourceRecord, findSourceByIdAndWorkspaceId, findSourcesByWorkspaceId } from "../repository/source.repository.js";
 import { NotFoundError } from "../types/app-error.js";
@@ -12,10 +13,10 @@ export async function createAndProcessSource(
 ) {
     const source = await createSource(data);
 
-    // await enqueueSourceProcessing({
-    //     sourceId: source.id,
-    //     workspaceId: source.workspaceId,
-    // });
+    await enqueueSourceProcessing({
+        sourceId: source.id,
+        workspaceId: source.workspaceId,
+    });
 
     return source;
 }

@@ -1,4 +1,5 @@
 import { WorkspaceSelect } from "../generated/prisma/models.js";
+import { deleteWorkspaceVectors } from "../lib/pinecone.js";
 import { createWorkspace, deleteWorkspace, findWorkspaceByIdAndUserId, findWorkspacesByUserId } from "../repository/workspace.repository.js";
 import { NotFoundError } from "../types/app-error.js";
 import { CreateWorkspaceInput, UpdateWorkspaceInput } from "../validators/workspace.validator.js";
@@ -25,12 +26,12 @@ export async function updateWorkspaceForUser(workspaceId: string, userId: string
 
 export async function deleteWorkspaceForUser(workspaceId: string, userId: string) {
     await getWorkspaceByIdForUserId(workspaceId, userId);
-    
-    try{
-        // We will delete the vector embedding of this workspace
+
+    try {
+        // We will delete the vector embedding of this workspace 
+        await deleteWorkspaceVectors(workspaceId);
     }
-    catch(error)
-    {
+    catch (error) {
         console.error("Failed to delete Pinecone namespace:", error);
     }
 

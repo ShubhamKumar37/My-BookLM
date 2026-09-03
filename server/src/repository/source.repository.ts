@@ -95,6 +95,7 @@ export async function findSourceById(sourceId: string) {
 export async function updateSourceRecord(sourceId: string, data: {
     content?: string | null,
     status?: SourceRecord["status"],
+    metadata?: Prisma.InputJsonValue
 }) {
     return await prisma.source.update({
         where: { id: sourceId }, 

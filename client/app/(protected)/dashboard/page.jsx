@@ -1,0 +1,10 @@
+import { LogoutButton } from '@/components/auth/logout-button'
+import React from 'react'
+
+const page = () => {
+    return (
+        <LogoutButton />
+    )
+}
+
+export default page

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { authClient } from "@/lib/auth-client";
+import { Toaster } from "@/components/ui/sonner";
 
 const Layout = ({ children }) => {
     const { data: session, isPending } = authClient.useSession();

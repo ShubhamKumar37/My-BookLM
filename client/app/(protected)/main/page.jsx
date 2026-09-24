@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 
 import { useWorkspaces } from "@/features/workspace/hooks/use-workspace";
 import { CreateWorkspaceDialog } from "@/features/workspace/components/create-workspace-dialog";
+import { WorkspaceCard } from "@/features/workspace/components/workspace-card";
 
 const Page = () => {
     const {
@@ -29,13 +30,14 @@ const Page = () => {
                 <CreateWorkspaceDialog />
             </div>
 
-            {/* Workspace Data */}
+            {/* Loading */}
             {isLoading && (
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 </div>
             )}
 
+            {/* Error */}
             {isError && (
                 <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
                     <p className="text-sm text-destructive">
@@ -44,10 +46,31 @@ const Page = () => {
                 </div>
             )}
 
+            {/* Workspaces */}
             {!isLoading && !isError && (
-                <pre className="overflow-auto rounded-xl border bg-muted/50 p-4 text-sm">
-                    {JSON.stringify(workspaces, null, 2)}
-                </pre>
+                <>
+                    {workspaces?.length > 0 ? (
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {workspaces.map((workspace, index) => (
+                                <WorkspaceCard
+                                    key={workspace.id}
+                                    workspace={workspace}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed">
+                            <h2 className="text-lg font-semibold">
+                                No workspaces yet
+                            </h2>
+
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Create your first workspace to get started.
+                            </p>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

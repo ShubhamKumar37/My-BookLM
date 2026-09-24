@@ -1,6 +1,6 @@
 import { WorkspaceSelect } from "../generated/prisma/models.js";
 import { deleteWorkspaceVectors } from "../lib/pinecone.js";
-import { createWorkspace, deleteWorkspace, findWorkspaceByIdAndUserId, findWorkspacesByUserId } from "../repository/workspace.repository.js";
+import { createWorkspace, deleteWorkspace, findWorkspaceByIdAndUserId, findWorkspacesByUserId, updateWorkspace } from "../repository/workspace.repository.js";
 import { NotFoundError } from "../types/app-error.js";
 import { CreateWorkspaceInput, UpdateWorkspaceInput } from "../validators/workspace.validator.js";
 
@@ -21,7 +21,7 @@ export async function createWorkspaceForUser(userId: string, data: CreateWorkspa
 
 export async function updateWorkspaceForUser(workspaceId: string, userId: string, data: UpdateWorkspaceInput) {
     await getWorkspaceByIdForUserId(workspaceId, userId);
-    return await updateWorkspaceForUser(workspaceId, userId, data);
+    return await updateWorkspace(workspaceId, data);
 }
 
 export async function deleteWorkspaceForUser(workspaceId: string, userId: string) {

@@ -15,29 +15,66 @@ import {
 
 import { CreateWorkspaceForm } from "./create-workspace-form";
 
-export function CreateWorkspaceDialog() {
-  const [open, setOpen] = useState(false);
+export function CreateWorkspaceDialog({
+  workspace,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = controlledOpen !== undefined;
+
+  const open = isControlled
+    ? controlledOpen
+    : internalOpen;
+
+  const handleOpenChange = (value) => {
+    if (!isControlled) {
+      setInternalOpen(value);
+    }
+
+    onOpenChange?.(value);
+  };
+
+  const isEditing = !!workspace;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="size-4" />
-          New Workspace
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+    >
+      {/* Only render a trigger when this dialog needs one */}
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button>
+              <Plus className="size-4" />
+              New Workspace
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md">
         <DialogHeader>
-          <DialogTitle>Create a workspace</DialogTitle>
+          <DialogTitle>
+            {isEditing
+              ? "Edit workspace"
+              : "Create a workspace"}
+          </DialogTitle>
 
           <DialogDescription>
-            Create a workspace to organize your books, sources,
-            conversations, and learning materials.
+            {isEditing
+              ? "Update your workspace details."
+              : "Create a workspace to organize your books, sources, and learning materials."}
           </DialogDescription>
         </DialogHeader>
 
-        <CreateWorkspaceForm onSuccess={() => setOpen(false)} />
+        <CreateWorkspaceForm
+          workspace={workspace}
+          onSuccess={() => handleOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

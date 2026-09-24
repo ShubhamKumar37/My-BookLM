@@ -3,7 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { useCreateWorkspace } from "../hooks/use-workspace";
+import {
+  useCreateWorkspace,
+  useUpdateWorkspace,
+} from "../hooks/use-workspace";
+
 import { createWorkspaceSchema } from "../schemas/workspace.schema";
 
 import { Button } from "@/components/ui/button";
@@ -18,18 +22,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export function CreateWorkspaceForm({ onSuccess }) {
+export function CreateWorkspaceForm({
+  workspace,
+  onSuccess,
+}) {
+  const isEditing = !!workspace;
+
   const createWorkspace = useCreateWorkspace();
+  const updateWorkspace = useUpdateWorkspace();
 
   const form = useForm({
     resolver: zodResolver(createWorkspaceSchema),
     defaultValues: {
-      title: "",
-      description: "",
+      title: workspace?.title || "",
+      description: workspace?.description || "",
     },
   });
 
+  const isPending =
+    createWorkspace.isPending || updateWorkspace.isPending;
+
   const onSubmit = (data) => {
+    if (isEditing) {
+      updateWorkspace.mutate(
+        {
+          workspaceId: workspace.id,
+          data,
+        },
+        {
+          onSuccess: () => {
+            onSuccess?.();
+          },
+        }
+      );
+
+      return;
+    }
+
     createWorkspace.mutate(data, {
       onSuccess: () => {
         form.reset();
@@ -40,7 +69,10 @@ export function CreateWorkspaceForm({ onSuccess }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-5"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -84,11 +116,15 @@ export function CreateWorkspaceForm({ onSuccess }) {
         <Button
           type="submit"
           className="w-full"
-          disabled={createWorkspace.isPending}
+          disabled={isPending}
         >
-          {createWorkspace.isPending
-            ? "Creating..."
-            : "Create workspace"}
+          {isPending
+            ? isEditing
+              ? "Updating..."
+              : "Creating..."
+            : isEditing
+              ? "Update workspace"
+              : "Create workspace"}
         </Button>
       </form>
     </Form>

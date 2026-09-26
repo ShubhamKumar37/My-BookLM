@@ -15,7 +15,10 @@ import {
   importYoutube,
   importWebsite,
   bulkDeleteSources,
+  reprocessSource,
 } from "../api/source.api";
+
+import { appToast } from "@/lib/toast";
 
 export const useSources = (workspaceId) => {
   return useQuery({
@@ -126,6 +129,29 @@ export const useBulkDeleteSources = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
+      });
+    },
+  });
+};
+
+export const useReprocessSource = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, sourceId }) =>
+      reprocessSource(workspaceId, sourceId),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sources", variables.workspaceId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "source",
+          variables.workspaceId,
+          variables.sourceId,
+        ],
       });
     },
   });

@@ -23,12 +23,7 @@ export const createSource = async (workspaceId, data) => {
 export const uploadPdf = async (workspaceId, formData) => {
   const response = await api.post(
     `/workspaces/${workspaceId}/sources/upload`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+    formData
   );
 
   return response.data;
@@ -77,6 +72,14 @@ export const bulkDeleteSources = async (workspaceId, data) => {
   const response = await api.post(
     `/workspaces/${workspaceId}/sources/bulk-delete`,
     data
+  );
+
+  return response.data;
+};
+
+export const reprocessSource = async (workspaceId, sourceId) => {
+  const response = await api.post(
+    `/workspaces/${workspaceId}/sources/${sourceId}/reprocess`
   );
 
   return response.data;

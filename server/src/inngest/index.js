@@ -14,11 +14,11 @@ const processSource = inngest.createFunction({
         await step.run("marking-process", () => markSourceProcessing(sourceId));
         try {
             const extracted = await step.run("extract-content", () => {
-                extractSourceContent(sourceId);
+                return extractSourceContent(sourceId);
             });
 
             await step.run("chunk-content", () => {
-                chunkSourceContent(sourceId, extracted.text, extracted.pages);
+                return chunkSourceContent(sourceId, extracted.text, extracted.pages);
             });
 
             const result = await step.run("embed-and-index", async () => {

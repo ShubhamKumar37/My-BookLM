@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { MoreVertical, Trash2 } from "lucide-react";
 
 import { EditWorkspaceDialog } from "./edit-workspace-dialog";
-
 import { useDeleteWorkspace } from "../hooks/use-workspace";
 
 import {
@@ -32,7 +32,6 @@ const gradients = [
 
 export function WorkspaceCard({ workspace, index = 0 }) {
     const deleteWorkspace = useDeleteWorkspace();
-
     const gradient = gradients[index % gradients.length];
 
     const handleDelete = () => {
@@ -45,14 +44,15 @@ export function WorkspaceCard({ workspace, index = 0 }) {
         <Card
             className={`group relative overflow-hidden border-border/60 bg-gradient-to-br ${gradient} transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
         >
-            {/* Decorative background */}
             <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-white/10 blur-2xl" />
 
             <CardHeader className="relative flex flex-row items-start justify-between space-y-0">
-                <div className="flex min-w-0 items-center gap-3">
+                <Link
+                    href={`/main/workspace/${workspace.id}`}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                >
                     <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background/70 text-lg font-bold shadow-sm backdrop-blur">
-                        {workspace.icon ||
-                            workspace.title.charAt(0).toUpperCase()}
+                        {workspace.icon || workspace.title.charAt(0).toUpperCase()}
                     </div>
 
                     <div className="min-w-0">
@@ -64,15 +64,11 @@ export function WorkspaceCard({ workspace, index = 0 }) {
                             {workspace.defaultModel}
                         </p>
                     </div>
-                </div>
+                </Link>
 
                 <div className="flex shrink-0 items-center gap-1">
-                    {/* Edit */}
-                    <EditWorkspaceDialog
-                        workspace={workspace}
-                    />
+                    <EditWorkspaceDialog workspace={workspace} />
 
-                    {/* Delete */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
@@ -81,7 +77,6 @@ export function WorkspaceCard({ workspace, index = 0 }) {
                                 className="size-8 opacity-70 transition-opacity group-hover:opacity-100"
                             >
                                 <MoreVertical className="size-4" />
-
                                 <span className="sr-only">
                                     Workspace actions
                                 </span>
@@ -95,7 +90,6 @@ export function WorkspaceCard({ workspace, index = 0 }) {
                                 onClick={handleDelete}
                             >
                                 <Trash2 className="size-4" />
-
                                 {deleteWorkspace.isPending
                                     ? "Deleting..."
                                     : "Delete workspace"}
@@ -105,19 +99,18 @@ export function WorkspaceCard({ workspace, index = 0 }) {
                 </div>
             </CardHeader>
 
-            <CardContent className="relative">
-                <p className="line-clamp-2 min-h-10 text-sm text-muted-foreground">
-                    {workspace.description ||
-                        "No description provided."}
-                </p>
+            <Link href={`/main/workspace/${workspace.id}`}>
+                <CardContent className="relative cursor-pointer">
+                    <p className="line-clamp-2 min-h-10 text-sm text-muted-foreground">
+                        {workspace.description || "No description provided."}
+                    </p>
 
-                <div className="mt-5 text-xs text-muted-foreground">
-                    Created{" "}
-                    {new Date(
-                        workspace.createdAt
-                    ).toLocaleDateString()}
-                </div>
-            </CardContent>
+                    <div className="mt-5 text-xs text-muted-foreground">
+                        Created{" "}
+                        {new Date(workspace.createdAt).toLocaleDateString()}
+                    </div>
+                </CardContent>
+            </Link>
         </Card>
     );
 }

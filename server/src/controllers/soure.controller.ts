@@ -1,8 +1,20 @@
 import type { Request, Response } from "express";
 import { workspaceIdParamSchema } from "../validators/workspace.validator.js";
 import { bulkDeleteSourcesSchema, createSourceSchema, importWebsiteSchema, importYoutubeSchema, listSourcesQuerySchema, sourceIdParamSchema } from "../validators/source.validator.js";
-import { bulkDeleteSourcesForWorkspace, createTextOrMarkdownSource, deleteSourceForWorkspace, getSourceForWorkspace, importWebsiteSource, importYoutubeSource, listSourcesForWorkspace, uploadPdfSource } from "../services/source.service.js";
+import {
+    bulkDeleteSourcesForWorkspace,
+    createTextOrMarkdownSource,
+    deleteSourceForWorkspace,
+    getSourceForWorkspace,
+    importWebsiteSource,
+    importYoutubeSource,
+    listChunksForSource,
+    listSourcesForWorkspace,
+    reprocessSourceForWorkspace,
+    uploadPdfSource,
+} from "../services/source.service.js";
 import { ValidationError } from "../types/app-error.js";
+import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
 
 export async function listSources(req: Request, res: Response) {
     const { workspaceId } = workspaceIdParamSchema.parse(req.params);
@@ -80,4 +92,32 @@ export async function importYoutube(req: Request, res: Response) {
     const source = await importYoutubeSource(workspaceId, req.session.user.id, input);
 
     res.status(201).json(source);
+}
+
+export async function getSourceChunks(req: Request, res: Response) {
+    const { workspaceId, sourceId } = sourceIdParamSchema.parse(req.params);
+
+    // Verify that the source belongs to this workspace
+    await getSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+
+    const result = await listChunksForSource(sourceId);
+
+    res.json(result);
+}
+
+export async function reprocessSource(req: Request, res: Response) {
+    const { workspaceId, sourceId } =
+        sourceIdParamSchema.parse(req.params);
+
+    const source = await reprocessSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        req.session.user.id,
+    );
+
+    res.status(202).json(source);
 }

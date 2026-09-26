@@ -3,7 +3,8 @@ import { scrapeWebsite } from "../lib/firecrawl.js";
 import { extractPdfFromBuffer } from "../lib/pdf.js";
 import { enqueueSourceProcessing } from "../lib/source-events.js";
 import { fetchYoutubeTranscript } from "../lib/youtube.js";
-import { createSource, createSourceRecord, deleteSourceRecord, findSourceByIdAndWorkspaceId, findSourcesByWorkspaceId } from "../repository/source.repository.js";
+import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
+import { createSource, createSourceRecord, deleteSourceRecord, findSourceByIdAndWorkspaceId, findSourcesByWorkspaceId, updateSourceRecord } from "../repository/source.repository.js";
 import { NotFoundError } from "../types/app-error.js";
 import { CreateSourceInput, ImportWebsiteInput, ImportYoutubeInput, ListSourcesQuery } from "../validators/source.validator.js";
 import { getWorkspaceByIdForUserId } from "./workspace.services.js";
@@ -160,4 +161,45 @@ export async function importYoutubeSource(
             videoId: transcript.videoId
         }
     });
+}
+
+export async function listChunksForSource(sourceId: string) {
+    const chunks = await findChunksBySourceId(sourceId);
+
+    return {
+        chunks,
+        count: chunks.length,
+    }
+}
+
+export async function reprocessSourceForWorkspace(
+    workspaceId: string,
+    sourceId: string,
+    userId: string,
+) {
+    const source = await getSourceForWorkspace(
+        workspaceId,
+        sourceId,
+        userId,
+    );
+
+    const metadata =
+        source.metadata && typeof source.metadata === "object"
+            ? source.metadata
+            : {};
+
+    const updatedSource = await updateSourceRecord(source.id, {
+        status: "PENDING",
+        metadata: {
+            ...metadata,
+            processingError: undefined,
+        },
+    });
+
+    await enqueueSourceProcessing({
+        sourceId: source.id,
+        workspaceId,
+    });
+
+    return updatedSource;
 }

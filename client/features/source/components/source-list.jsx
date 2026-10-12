@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-
+import { SourceCard } from "./source-card";
 import { useSources } from "../hooks/use-source";
 
 export function SourceList({ workspaceId }) {
@@ -47,22 +47,11 @@ export function SourceList({ workspaceId }) {
     return (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {sources.map((source) => (
-                <div
+                <SourceCard
                     key={source.id}
-                    className="rounded-xl border p-4"
-                >
-                    <p className="font-medium">
-                        {source.title}
-                    </p>
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        {source.type}
-                    </p>
-
-                    <p className="mt-3 text-xs text-muted-foreground">
-                        Status: {source.status}
-                    </p>
-                </div>
+                    source={source}
+                    workspaceId={workspaceId}
+                />
             ))}
         </div>
     );

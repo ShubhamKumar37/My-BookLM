@@ -13,6 +13,7 @@ export async function createAndProcessSource(
     data: Parameters<typeof createSourceRecord>[0]
 ) {
     const source = await createSource(data);
+    console.log("This is the source", source);
 
     await enqueueSourceProcessing({
         sourceId: source.id,
@@ -121,7 +122,7 @@ export async function uploadPdfSource(
         pageCount = extracted.pageCount;
         content = extracted.text;
     } catch (error) {
-
+        console.log("Error: ", error);
     }
 
     return createAndProcessSource({

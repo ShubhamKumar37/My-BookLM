@@ -22,7 +22,7 @@ export const createSource = async (workspaceId, data) => {
 // POST /workspaces/:workspaceId/sources/upload
 export const uploadPdf = async (workspaceId, formData) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources/upload`,
+    `/workspace/source/upload/${workspaceId}`,
     formData
   );
 
@@ -50,7 +50,7 @@ export const deleteSource = async (workspaceId, sourceId) => {
 // POST /workspaces/:workspaceId/sources/import/youtube
 export const importYoutube = async (workspaceId, data) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources/import/youtube`,
+    `/workspace/source/import/youtube/${workspaceId}`,
     data
   );
 
@@ -60,7 +60,7 @@ export const importYoutube = async (workspaceId, data) => {
 // POST /workspaces/:workspaceId/sources/import/website
 export const importWebsite = async (workspaceId, data) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources/import/website`,
+    `/workspace/source/import/website/${workspaceId}`,
     data
   );
 

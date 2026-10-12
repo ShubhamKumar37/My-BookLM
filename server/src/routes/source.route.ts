@@ -10,7 +10,7 @@ sourceRoutes.get("/", asyncHandler(listSources));
 sourceRoutes.post("/", asyncHandler(createSource));
 
 sourceRoutes.post(
-    "/upload",
+    "/upload/:workspaceId",
     uploadSinglePdf,
     asyncHandler(uploadPdf),
 );
@@ -19,12 +19,12 @@ sourceRoutes.get("/:sourceId", asyncHandler(getSource));
 sourceRoutes.delete("/:sourceId", asyncHandler(deleteSource));
 
 sourceRoutes.post(
-    "/import/youtube",
+    "/import/youtube/:workspaceId",
     asyncHandler(importYoutube),
 );
 
 sourceRoutes.post(
-    "/import/website",
+    "/import/website/:workspaceId",
     asyncHandler(importWebsites),
 );
 

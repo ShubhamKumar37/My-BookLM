@@ -1,9 +1,7 @@
-
 import { v2 as cloudinary } from "cloudinary";
 import { ValidationError } from "../types/app-error.js";
 
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+const cloudName = process.env.CLOUDINARY_API_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -48,57 +46,76 @@ export function getSignedCloudinaryDownloadUrl(
 }
 
 /**
- * Uploads a PDF buffer to Cloudinary using an unsigned upload preset.
+ * Uploads a PDF buffer to Cloudinary.
  *
  * @param buffer - PDF file bytes from Multer
- * @param filename - Original filename (used in the multipart form)
+ * @param filename - Original filename
  * @returns Upload metadata including secure URL and public id
- * @throws {ValidationError} When Cloudinary is not configured or upload is rejected
- *
  */
 export async function uploadPdfToCloudinary(
     buffer: Buffer,
     filename: string,
 ): Promise<CloudinaryUploadResult> {
-    if (!cloudName) {
-        throw new ValidationError("Cloudinary is not configured on the server");
+    if (!cloudName || !apiKey || !apiSecret) {
+        throw new ValidationError(
+            "Cloudinary is not configured on the server",
+        );
     }
 
-    const form = new FormData();
-    form.append(
-        "file",
-        new Blob([new Uint8Array(buffer)], { type: "application/pdf" }),
-        filename,
-    );
-    form.append("upload_preset", uploadPreset);
-    form.append("folder", "chaibook/pdfs");
+    cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+    });
 
-    const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`,
-        { method: "POST", body: form },
-    );
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                resource_type: "raw",
+                folder: "chaibook/pdfs",
+                use_filename: true,
+                unique_filename: true,
+            },
+            (
+                error,
+                result,
+            ) => {
+                if (error) {
+                    console.error("Cloudinary upload error:", error);
 
-    const result = (await response.json()) as CloudinaryUploadResponse;
+                    reject(
+                        new ValidationError(
+                            error.message || "Cloudinary upload failed",
+                        ),
+                    );
 
-    if (!response.ok) {
-        const message =
-            result.error?.message ??
-            `Cloudinary upload failed (${response.status})`;
+                    return;
+                }
 
-        if (response.status === 403) {
-            throw new ValidationError(
-                "Cloudinary rejected the upload. Check CLOUDINARY_UPLOAD_PRESET in server/.env matches an unsigned preset in your dashboard.",
-            );
-        }
+                if (!result) {
+                    reject(
+                        new ValidationError(
+                            "Cloudinary did not return an upload result",
+                        ),
+                    );
 
-        throw new ValidationError(message);
-    }
+                    return;
+                }
 
-    return {
-        secureUrl: result.secure_url,
-        publicId: result.public_id,
-        bytes: result.bytes,
-        originalFilename: filename,
-        resourceType: result.resource_type === "image" ? "image" : "raw",
-    };
+                resolve({
+                    secureUrl: result.secure_url,
+                    publicId: result.public_id,
+                    bytes: result.bytes,
+                    originalFilename: filename,
+                    resourceType:
+                        result.resource_type === "image"
+                            ? "image"
+                            : "raw",
+                });
+            },
+        );
+
+        uploadStream.end(buffer);
+    });
 }

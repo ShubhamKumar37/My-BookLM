@@ -58,10 +58,30 @@ export const useUploadPdf = () => {
     mutationFn: ({ workspaceId, formData }) =>
       uploadPdf(workspaceId, formData),
 
-    onSuccess: (_, variables) => {
+    onMutate: () => {
+      return {
+        toastId: appToast.loading("Uploading PDF..."),
+      };
+    },
+
+    onSuccess: (_, variables, context) => {
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
+
+      appToast.dismiss(context?.toastId);
+      appToast.success(
+        "PDF uploaded. Processing has started."
+      );
+    },
+
+    onError: (error, _, context) => {
+      appToast.dismiss(context?.toastId);
+
+      appToast.error(
+        error?.response?.data?.message ||
+        "Failed to upload PDF."
+      );
     },
   });
 };

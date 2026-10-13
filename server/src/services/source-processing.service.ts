@@ -6,6 +6,7 @@ import { deleteSourceVectors, upsertSourceVector, VectorMetaData } from "../lib/
 import { createSourceChunks, deleteSourceChunksBySourceId, findChunksBySourceId, sourceChunkRecord } from "../repository/source-chunk.repository.js";
 import { findSourceById, SourceRecord, updateSourceRecord } from "../repository/source.repository.js";
 import { embedTexts } from "../lib/openai.js";
+import { paginateWebsiteMarkdown } from "../lib/firecrawl.js";
 
 type SourceMetadata = {
     fileUrl?: string;
@@ -22,22 +23,15 @@ type SourceMetadata = {
 };
 
 async function extractSourceText(source: SourceRecord) {
-    const text = source.content?.trim();
-    if (text) {
-        return {
-            text,
-            pageCount: undefined,
-            pages: undefined,
-        };
-    }
+    const metadata =
+        source.metadata &&
+            typeof source.metadata === "object" &&
+            !Array.isArray(source.metadata)
+            ? (source.metadata as SourceMetadata)
+            : {};
 
-    if (source.type === "PDF") {
-        const metadata =
-            source.metadata &&
-                typeof source.metadata === "object" &&
-                !Array.isArray(source.metadata)
-                ? (source.metadata as SourceMetadata)
-                : {};
+    // 1. PDF extraction
+    if (source.type === "PDF" && !source.content?.trim()) {
         if (!metadata.fileUrl) {
             throw new Error("PDF source is missing fileUrl metadata");
         }
@@ -47,6 +41,7 @@ async function extractSourceText(source: SourceRecord) {
             publicId: metadata.publicId,
             resourceType: metadata.resourceType ?? "image",
         });
+
         return {
             text: extracted.text,
             pageCount: extracted.pageCount,
@@ -54,7 +49,41 @@ async function extractSourceText(source: SourceRecord) {
         };
     }
 
-    // TODO: We need the code for Webiste content.
+    // 2. Website content (already stored as Markdown)
+    if (source.type === "WEBSITE") {
+        const markdown = source.content?.trim();
+
+        if (!markdown) {
+            throw new Error(
+                `Website source ${source.id} has no Markdown content`,
+            );
+        }
+
+        const pages = paginateWebsiteMarkdown(markdown);
+
+        if (pages.length === 0) {
+            throw new Error(
+                `Website source ${source.id} produced no pages`,
+            );
+        }
+
+        return {
+            text: pages.map((page) => page.text).join("\n\n"),
+            pageCount: pages.length,
+            pages,
+        };
+    }
+
+    // 3. Other source types with stored content
+    const text = source.content?.trim();
+
+    if (text) {
+        return {
+            text,
+            pageCount: undefined,
+            pages: undefined,
+        };
+    }
 
     throw new Error(`Source ${source.id} has no extractable content`);
 }
@@ -124,8 +153,26 @@ export async function chunkSourceContent(
     pages?: string[],
 ) {
     await deleteSourceChunksBySourceId(sourceId);
+    const normalizedPages = (pages ?? []).map((page, index) => {
+        if (typeof page === "string") {
+            return page;
+        }
 
-    const chunks = pages?.length ? chunkPages(pages) : chunkText(text);
+        if (
+            page &&
+            typeof page === "object" &&
+            "text" in page &&
+            typeof page.text === "string"
+        ) {
+            return page.text;
+        }
+
+        throw new Error(`Invalid page data at index ${index}`);
+    });
+
+    const chunks = normalizedPages.length > 0
+        ? chunkPages(normalizedPages)
+        : chunkText(text);
 
     if (chunks.length === 0) {
         throw new Error("No chunks were generated from source content");

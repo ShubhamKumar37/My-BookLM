@@ -1,25 +1,28 @@
 import { api } from "@/lib/axios";
 
-// GET /workspaces/:workspaceId/sources
+// GET /api/workspace/source/:workspaceId
 export const getSources = async (workspaceId) => {
   const response = await api.get(
-    `/workspaces/${workspaceId}/sources`
+    `/workspace/source/${workspaceId}`
   );
 
   return response.data;
 };
 
-// POST /workspaces/:workspaceId/sources
+// POST /api/workspace/source
 export const createSource = async (workspaceId, data) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources`,
-    data
+    `/workspace/source`,
+    {
+      ...data,
+      workspaceId,
+    }
   );
 
   return response.data;
 };
 
-// POST /workspaces/:workspaceId/sources/upload
+// POST /api/workspace/source/upload/:workspaceId
 export const uploadPdf = async (workspaceId, formData) => {
   const response = await api.post(
     `/workspace/source/upload/${workspaceId}`,
@@ -29,25 +32,25 @@ export const uploadPdf = async (workspaceId, formData) => {
   return response.data;
 };
 
-// GET /workspaces/:workspaceId/sources/:sourceId
-export const getSource = async (workspaceId, sourceId) => {
+// GET /api/workspace/source/:sourceId
+export const getSource = async (sourceId) => {
   const response = await api.get(
-    `/workspaces/${workspaceId}/sources/${sourceId}`
+    `/workspace/source/${sourceId}`
   );
 
   return response.data;
 };
 
-// DELETE /workspaces/:workspaceId/sources/:sourceId
+// DELETE /api/workspace/source/:workspaceId/:sourceId
 export const deleteSource = async (workspaceId, sourceId) => {
   const response = await api.delete(
-    `/workspaces/${workspaceId}/sources/${sourceId}`
+    `/workspace/source/${workspaceId}/${sourceId}`
   );
 
   return response.data;
 };
 
-// POST /workspaces/:workspaceId/sources/import/youtube
+// POST /api/workspace/source/import/youtube/:workspaceId
 export const importYoutube = async (workspaceId, data) => {
   const response = await api.post(
     `/workspace/source/import/youtube/${workspaceId}`,
@@ -57,7 +60,7 @@ export const importYoutube = async (workspaceId, data) => {
   return response.data;
 };
 
-// POST /workspaces/:workspaceId/sources/import/website
+// POST /api/workspace/source/import/website/:workspaceId
 export const importWebsite = async (workspaceId, data) => {
   const response = await api.post(
     `/workspace/source/import/website/${workspaceId}`,
@@ -67,19 +70,23 @@ export const importWebsite = async (workspaceId, data) => {
   return response.data;
 };
 
-// POST /workspaces/:workspaceId/sources/bulk-delete
+// POST /api/workspace/source/bulk-delete
 export const bulkDeleteSources = async (workspaceId, data) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources/bulk-delete`,
-    data
+    `/workspace/source/bulk-delete`,
+    {
+      ...data,
+      workspaceId,
+    }
   );
 
   return response.data;
 };
 
-export const reprocessSource = async (workspaceId, sourceId) => {
+// POST /api/workspace/source/:sourceId/reprocess
+export const reprocessSource = async (sourceId) => {
   const response = await api.post(
-    `/workspaces/${workspaceId}/sources/${sourceId}/reprocess`
+    `/workspace/source/${sourceId}/reprocess`
   );
 
   return response.data;

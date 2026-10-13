@@ -7,6 +7,7 @@ import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
 import { createSource, createSourceRecord, deleteSourceRecord, findSourceByIdAndWorkspaceId, findSourcesByWorkspaceId, updateSourceRecord } from "../repository/source.repository.js";
 import { NotFoundError } from "../types/app-error.js";
 import { CreateSourceInput, ImportWebsiteInput, ImportYoutubeInput, ListSourcesQuery } from "../validators/source.validator.js";
+import { removeSourceFromIndex } from "./source-processing.service.js";
 import { getWorkspaceByIdForUserId } from "./workspace.services.js";
 
 export async function createAndProcessSource(
@@ -70,7 +71,7 @@ export async function deleteSourceForWorkspace(
     userId: string,
 ) {
     await getSourceForWorkspace(workspaceId, sourceId, userId);
-    // await removeSourceFromIndex(workspaceId, sourceId);
+    await removeSourceFromIndex(workspaceId, sourceId);
     await deleteSourceRecord(sourceId);
 }
 

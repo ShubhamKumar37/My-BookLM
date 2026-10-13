@@ -6,7 +6,7 @@ import {
     MoreVertical,
     RotateCcw,
     Trash2,
-    Youtube,
+    Play,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ const sourceConfig = {
     },
     YOUTUBE: {
         label: "YouTube",
-        icon: Youtube,
+        icon: Play,
     },
     TEXT: {
         label: "Text",

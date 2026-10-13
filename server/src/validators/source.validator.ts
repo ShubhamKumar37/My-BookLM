@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const sourceTypeSchema = z.enum(["PDF", "WEBSITE", "YOUTUBE", "TEXT", "MARKDOWN"]);
 export const sourceStatusSchema = z.enum(["PENDING", "PROCESSING", "READY", "FAIL"]);
+export type WebsitePage = {
+    pageNumber: number;
+    text: string;
+};
 
 export const workspaceIdParamSchema = z.object({
     workspaceId: z.string().trim().min(1),

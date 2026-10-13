@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   useQuery,
   useMutation,
@@ -20,21 +21,90 @@ import {
 
 import { appToast } from "@/lib/toast";
 
+// --------------------------------------------------
+// Shared toast helpers
+// --------------------------------------------------
+
+const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.message ||
+  error?.message ||
+  fallback;
+
+const useQueryLoadingToast = (isFetching, message) => {
+  const toastIdRef = useRef(null);
+
+  useEffect(() => {
+    if (isFetching && toastIdRef.current === null) {
+      toastIdRef.current = appToast.loading(message);
+    }
+
+    if (!isFetching && toastIdRef.current !== null) {
+      appToast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
+
+    return () => {
+      if (toastIdRef.current !== null) {
+        appToast.dismiss(toastIdRef.current);
+        toastIdRef.current = null;
+      }
+    };
+  }, [isFetching, message]);
+};
+
+const useMutationToast = (loadingMessage, successMessage, errorMessage) => {
+  return {
+    onMutate: () => ({
+      toastId: appToast.loading(loadingMessage),
+    }),
+
+    onSuccess: (_, __, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success(successMessage);
+    },
+
+    onError: (error, _, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.error(getErrorMessage(error, errorMessage));
+    },
+  };
+};
+
+// --------------------------------------------------
+// GET: All sources
+// --------------------------------------------------
+
 export const useSources = (workspaceId) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["sources", workspaceId],
     queryFn: () => getSources(workspaceId),
     enabled: !!workspaceId,
   });
+
+  useQueryLoadingToast(query.isFetching, "Fetching sources...");
+
+  return query;
 };
 
+// --------------------------------------------------
+// GET: Single source
+// --------------------------------------------------
+
 export const useSource = (workspaceId, sourceId) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["source", workspaceId, sourceId],
     queryFn: () => getSource(workspaceId, sourceId),
     enabled: !!workspaceId && !!sourceId,
   });
+
+  useQueryLoadingToast(query.isFetching, "Fetching source details...");
+
+  return query;
 };
+
+// --------------------------------------------------
+// POST: Create source
+// --------------------------------------------------
 
 export const useCreateSource = () => {
   const queryClient = useQueryClient();
@@ -43,13 +113,26 @@ export const useCreateSource = () => {
     mutationFn: ({ workspaceId, data }) =>
       createSource(workspaceId, data),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Creating source...",
+      "Source created successfully.",
+      "Failed to create source."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("Source created successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
     },
   });
 };
+
+// --------------------------------------------------
+// POST: Upload PDF
+// --------------------------------------------------
 
 export const useUploadPdf = () => {
   const queryClient = useQueryClient();
@@ -58,33 +141,28 @@ export const useUploadPdf = () => {
     mutationFn: ({ workspaceId, formData }) =>
       uploadPdf(workspaceId, formData),
 
-    onMutate: () => {
-      return {
-        toastId: appToast.loading("Uploading PDF..."),
-      };
-    },
+    ...useMutationToast(
+      "Uploading PDF...",
+      "PDF uploaded successfully. Processing has started.",
+      "Failed to upload PDF."
+    ),
 
     onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success(
+        "PDF uploaded successfully. Processing has started."
+      );
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
-
-      appToast.dismiss(context?.toastId);
-      appToast.success(
-        "PDF uploaded. Processing has started."
-      );
-    },
-
-    onError: (error, _, context) => {
-      appToast.dismiss(context?.toastId);
-
-      appToast.error(
-        error?.response?.data?.message ||
-        "Failed to upload PDF."
-      );
     },
   });
 };
+
+// --------------------------------------------------
+// DELETE: Single source
+// --------------------------------------------------
 
 export const useDeleteSource = () => {
   const queryClient = useQueryClient();
@@ -93,7 +171,16 @@ export const useDeleteSource = () => {
     mutationFn: ({ workspaceId, sourceId }) =>
       deleteSource(workspaceId, sourceId),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Deleting source...",
+      "Source deleted successfully.",
+      "Failed to delete source."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("Source deleted successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
@@ -109,6 +196,10 @@ export const useDeleteSource = () => {
   });
 };
 
+// --------------------------------------------------
+// POST: Import YouTube video
+// --------------------------------------------------
+
 export const useImportYoutube = () => {
   const queryClient = useQueryClient();
 
@@ -116,13 +207,26 @@ export const useImportYoutube = () => {
     mutationFn: ({ workspaceId, data }) =>
       importYoutube(workspaceId, data),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Importing YouTube video...",
+      "YouTube video imported successfully.",
+      "Failed to import YouTube video."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("YouTube video imported successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
     },
   });
 };
+
+// --------------------------------------------------
+// POST: Import website
+// --------------------------------------------------
 
 export const useImportWebsite = () => {
   const queryClient = useQueryClient();
@@ -131,13 +235,26 @@ export const useImportWebsite = () => {
     mutationFn: ({ workspaceId, data }) =>
       importWebsite(workspaceId, data),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Importing website...",
+      "Website imported successfully.",
+      "Failed to import website."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("Website imported successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
     },
   });
 };
+
+// --------------------------------------------------
+// POST: Bulk delete sources
+// --------------------------------------------------
 
 export const useBulkDeleteSources = () => {
   const queryClient = useQueryClient();
@@ -146,13 +263,26 @@ export const useBulkDeleteSources = () => {
     mutationFn: ({ workspaceId, data }) =>
       bulkDeleteSources(workspaceId, data),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Deleting selected sources...",
+      "Selected sources deleted successfully.",
+      "Failed to delete selected sources."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("Selected sources deleted successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });
     },
   });
 };
+
+// --------------------------------------------------
+// POST: Reprocess source
+// --------------------------------------------------
 
 export const useReprocessSource = () => {
   const queryClient = useQueryClient();
@@ -161,7 +291,16 @@ export const useReprocessSource = () => {
     mutationFn: ({ workspaceId, sourceId }) =>
       reprocessSource(workspaceId, sourceId),
 
-    onSuccess: (_, variables) => {
+    ...useMutationToast(
+      "Reprocessing source...",
+      "Source reprocessing started successfully.",
+      "Failed to reprocess source."
+    ),
+
+    onSuccess: (_, variables, context) => {
+      appToast.dismiss(context?.toastId);
+      appToast.success("Source reprocessing started successfully.");
+
       queryClient.invalidateQueries({
         queryKey: ["sources", variables.workspaceId],
       });

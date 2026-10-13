@@ -6,7 +6,7 @@ import { uploadSinglePdf } from "../middleware/upload.middleware.js";
 
 export const sourceRoutes = Router({ mergeParams: true });
 
-sourceRoutes.get("/", asyncHandler(listSources));
+sourceRoutes.get("/:workspaceId", asyncHandler(listSources));
 sourceRoutes.post("/", asyncHandler(createSource));
 
 sourceRoutes.post(
@@ -16,7 +16,7 @@ sourceRoutes.post(
 );
 
 sourceRoutes.get("/:sourceId", asyncHandler(getSource));
-sourceRoutes.delete("/:sourceId", asyncHandler(deleteSource));
+sourceRoutes.delete("/:workspaceId/:sourceId", asyncHandler(deleteSource));
 
 sourceRoutes.post(
     "/import/youtube/:workspaceId",

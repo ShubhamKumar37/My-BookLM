@@ -1,9 +1,14 @@
 import { DefaultChatTransport } from "ai";
 
 export function createChatTransport(workspaceId, conversationId) {
-    return new DefaultChatTransport({
-        api: `${process.env.NEXT_PUBLIC_API_URL} /workspace/chat / ${workspaceId} `,
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
 
+    if (!baseUrl) {
+        throw new Error("NEXT_PUBLIC_API_URL is not configured");
+    }
+
+    return new DefaultChatTransport({
+        api: `${baseUrl}/workspace/chat/${encodeURIComponent(workspaceId)}`,
         credentials: "include",
 
         prepareSendMessagesRequest({ messages }) {

@@ -12,7 +12,7 @@ export function useWorkspaceChat(workspaceId, conversationId) {
     );
 
     const {
-        messages: savedMessages,
+        data: savedMessages,
         isPending,
         isError,
         error,

@@ -14,7 +14,7 @@ import {
     Pencil,
     Trash2,
 } from "lucide-react";
-
+import { useWorkspace } from "../hooks/use-workspace";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -46,7 +46,8 @@ const items = [
 
 export function WorkspaceSidebar({ workspaceId }) {
     const pathname = usePathname();
-
+    const { data: workspace, isLoading: isWorkspaceLoading } =
+        useWorkspace(workspaceId);
     const [conversationToRename, setConversationToRename] = useState(null);
 
     const {
@@ -81,6 +82,26 @@ export function WorkspaceSidebar({ workspaceId }) {
     return (
         <aside className="flex min-h-0 flex-col">
             <nav className="flex gap-1 overflow-x-auto p-2 lg:flex-col lg:space-y-1 lg:overflow-visible lg:p-3">
+                <div className="border-b px-4 py-4">
+                    {isWorkspaceLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="size-4 animate-spin" />
+                            Loading workspace...
+                        </div>
+                    ) : (
+                        <>
+                            <h2 className="truncate text-lg font-semibold">
+                                {workspace?.title || "Workspace"}
+                            </h2>
+
+                            {workspace?.description && (
+                                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                                    {workspace.description}
+                                </p>
+                            )}
+                        </>
+                    )}
+                </div>
                 {items.map((item) => {
                     const Icon = item.icon;
                     const href = `/main/workspace/${workspaceId}/${item.href}`;

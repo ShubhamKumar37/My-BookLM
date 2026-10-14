@@ -63,7 +63,7 @@ const Layout = ({ children }) => {
             </header>
 
             {/* Page Content */}
-            <main className="mx-auto w-full max-w-7xl px-6 py-8">
+            <main className="mx-auto w-full max-w-10xl px-2">
                 {children}
             </main>
         </div>

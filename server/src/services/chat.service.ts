@@ -42,7 +42,7 @@ export async function getConversationMessagesForWorkspace(
 
     return records.map((message) => ({
         id: message.id,
-        role: message.role,
+        role: message.role.toLowerCase() as "user" | "assistant",
         parts: [
             {
                 type: "text" as const,

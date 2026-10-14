@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
     MessageSquare,
     BookOpen,
@@ -24,8 +24,7 @@ import {
 
 import { RenameConversationDialog } from "@/features/conversation/components/rename-conversation-dialog";
 import { cn } from "@/lib/utils";
-import { useConversations } from "@/features/conversation/hooks/use-conversation";
-import { useCreateConversation } from "@/features/conversation/hooks/use-conversation";
+import { useConversations, useCreateConversation, useDeleteConversation } from "@/features/conversation/hooks/use-conversation";
 
 const items = [
     {
@@ -60,6 +59,23 @@ export function WorkspaceSidebar({ workspaceId }) {
 
     const handleCreateConversation = () => {
         createMutation.mutate({});
+    };
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const deleteMutation = useDeleteConversation(workspaceId);
+
+    const handleDeleteConversation = (conversation) => {
+        deleteMutation.mutate(conversation.id, {
+            onSuccess: () => {
+                if (
+                    searchParams.get("conversationId") === conversation.id
+                ) {
+                    router.push(`/main/workspace/${workspaceId}/chat`);
+                }
+            },
+        });
     };
 
     return (
@@ -203,11 +219,9 @@ export function WorkspaceSidebar({ workspaceId }) {
                                     >
                                         <DropdownMenuItem
                                             className="cursor-pointer"
-                                            onSelect={() =>
-                                                setConversationToRename(
-                                                    conversation
-                                                )
-                                            }
+                                            onClick={() => {
+                                                setConversationToRename(conversation);
+                                            }}
                                         >
                                             <Pencil className="mr-2 size-4" />
                                             Rename
@@ -215,12 +229,15 @@ export function WorkspaceSidebar({ workspaceId }) {
 
                                         <DropdownMenuItem
                                             className="cursor-pointer text-destructive focus:text-destructive"
-                                            onSelect={() => {
-                                                // Delete confirmation will be implemented next.
-                                            }}
+                                            disabled={deleteMutation.isPending}
+                                            onClick={() => {
+                                                console.log("We deleted  a conversation");
+                                                handleDeleteConversation(conversation)
+                                            }
+                                            }
                                         >
                                             <Trash2 className="mr-2 size-4" />
-                                            Delete
+                                            {deleteMutation.isPending ? "Deleting..." : "Delete"}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>

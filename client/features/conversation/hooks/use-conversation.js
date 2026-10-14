@@ -4,6 +4,8 @@ import {
     useQueryClient,
 } from "@tanstack/react-query";
 
+import { appToast } from "@/lib/toast";
+
 import {
     getConversations,
     createConversation,
@@ -19,6 +21,7 @@ const conversationKeys = {
     ],
 };
 
+// Fetch conversations for a workspace
 export function useConversations(workspaceId) {
     return useQuery({
         queryKey: conversationKeys.workspace(workspaceId),
@@ -27,6 +30,7 @@ export function useConversations(workspaceId) {
     });
 }
 
+// Create a conversation
 export function useCreateConversation(workspaceId) {
     const queryClient = useQueryClient();
 
@@ -38,10 +42,17 @@ export function useCreateConversation(workspaceId) {
             queryClient.invalidateQueries({
                 queryKey: conversationKeys.workspace(workspaceId),
             });
+
+            appToast.success("Conversation created successfully.");
+        },
+
+        onError: () => {
+            appToast.error("Couldn't create the conversation.");
         },
     });
 }
 
+// Rename/update a conversation
 export function useUpdateConversation(workspaceId) {
     const queryClient = useQueryClient();
 
@@ -53,10 +64,17 @@ export function useUpdateConversation(workspaceId) {
             queryClient.invalidateQueries({
                 queryKey: conversationKeys.workspace(workspaceId),
             });
+
+            appToast.success("Conversation renamed successfully.");
+        },
+
+        onError: () => {
+            appToast.error("Couldn't rename the conversation.");
         },
     });
 }
 
+// Delete a conversation
 export function useDeleteConversation(workspaceId) {
     const queryClient = useQueryClient();
 
@@ -68,6 +86,12 @@ export function useDeleteConversation(workspaceId) {
             queryClient.invalidateQueries({
                 queryKey: conversationKeys.workspace(workspaceId),
             });
+
+            appToast.success("Conversation deleted successfully.");
+        },
+
+        onError: () => {
+            appToast.error("Couldn't delete the conversation.");
         },
     });
 }

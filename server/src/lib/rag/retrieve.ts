@@ -72,7 +72,7 @@ export function buildChatSystemPrompt(input: {
     webSearchEnabled?: boolean;
 }) {
     const sections: string[] = [
-        "You are Chaibook, an assistant that helps users learn from their workspace sources.",
+        "You are mybook, an assistant that helps users learn from their workspace sources.",
     ];
 
     if (input.webSearchEnabled) {

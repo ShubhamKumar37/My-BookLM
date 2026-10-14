@@ -18,13 +18,42 @@ export async function createConversationForWorkspace(workspaceId: string, userId
     return createConversationRecord(workspaceId, title);
 }
 
-export async function getConversationMessagesForWorkspace(workspaceId: string, conversationId: string, userId: string) {
-    await getWorkspaceByIdForUserId(workspaceId, userId);
+export async function getConversationMessagesForWorkspace(
+    workspaceId: string,
+    conversationId: string,
+    userId: string
+) {
+    const workspace = await getWorkspaceByIdForUserId(workspaceId, userId);
 
-    const conversation = await findConversationByIdAndWorkspaceId(conversationId, workspaceId);
-    if (!conversation) throw new NotFoundError("Conversation not found");
+    if (!workspace) {
+        throw new NotFoundError("Workspace not found");
+    }
 
-    return findMessagesByConversationId(conversationId);
+    const conversation = await findConversationByIdAndWorkspaceId(
+        conversationId,
+        workspaceId
+    );
+
+    if (!conversation) {
+        throw new NotFoundError("Conversation not found");
+    }
+
+    const records = await findMessagesByConversationId(conversationId);
+
+    return records.map((message) => ({
+        id: message.id,
+        role: message.role,
+        parts: [
+            {
+                type: "text" as const,
+                text: message.content,
+            },
+        ],
+        metadata: {
+            citations: message.citations,
+            createdAt: message.createdAt,
+        },
+    }));
 }
 
 export async function deleteConversationForWorkspace(workspaceId: string, conversationId: string, userId: string) {

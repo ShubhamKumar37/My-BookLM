@@ -8,20 +8,20 @@ const WorkspaceLayout = ({ children }) => {
     const workspaceId = params?.workspaceId;
 
     return (
-        <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 w-full max-w-none flex-col overflow-hidden">
+        <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 w-full max-w-none flex-col ">
             {/* Mobile sidebar */}
-            <div className="shrink-0 border-b bg-background lg:hidden">
+            <div className="shrink-0 border-b bg-background lg:hidden ">
                 <WorkspaceSidebar workspaceId={workspaceId} />
             </div>
 
-            <div className="flex min-h-0 w-full max-w-none flex-1 overflow-hidden">
+            <div className="flex min-h-0 w-full max-w-none flex-1 ">
                 {/* Desktop sidebar */}
-                <aside className="hidden w-64 shrink-0 overflow-hidden border-r lg:flex lg:flex-col">
+                <aside className="hidden w-64 shrink-0 border-r lg:flex lg:flex-col">
                     <WorkspaceSidebar workspaceId={workspaceId} />
                 </aside>
 
                 {/* Chat area */}
-                <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                <main className="flex min-h-0 min-w-0 flex-1 flex-col ">
                     {children}
                 </main>
             </div>

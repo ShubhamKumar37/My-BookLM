@@ -40,7 +40,7 @@ const items = [
     {
         label: "Artifacts",
         icon: Sparkles,
-        href: "artifacts",
+        href: "artifact",
     },
 ];
 
@@ -81,7 +81,7 @@ export function WorkspaceSidebar({ workspaceId }) {
 
     return (
         <aside className="flex min-h-0 flex-col">
-            <nav className="flex gap-1 overflow-x-auto p-2 lg:flex-col lg:space-y-1 lg:overflow-visible lg:p-3">
+            <nav className="flex gap-1 overflow-x-auto  p-2 lg:flex-col lg:space-y-1 lg:overflow-visible lg:p-3">
                 <div className="border-b px-4 py-4">
                     {isWorkspaceLoading ? (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">

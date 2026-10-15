@@ -34,7 +34,7 @@ sourceRoutes.post(
 );
 
 sourceRoutes.post(
-    "/:sourceId/reprocess",
+    "/reprocess/:sourceId/:workspaceId",
     asyncHandler(reprocessSource),
 );
 // sourceRoutes.post("/import/web-search", asyncHandler(importWebSearch));

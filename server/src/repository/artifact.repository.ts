@@ -7,11 +7,11 @@ const artifactSelect = {
     type: true,
     title: true,
     content: true,
-    sourceId: true,
+    sourceIds: true,
     status: true,
     metadata: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
 } as const;
 
 export type ArtifactRecord = Prisma.LearningArtifactGetPayload<{ select: typeof artifactSelect }>;

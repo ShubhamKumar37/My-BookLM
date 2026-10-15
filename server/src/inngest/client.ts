@@ -11,5 +11,15 @@ export type SourceCreatedEvent = {
     }
 }
 
-export type InngestEvent = SourceCreatedEvent;
+export type ArtifactGenerateEvent = {
+    name: "artifact/generate";
+    data: {
+        artifactId: string;
+        workspaceId: string;
+    };
+};
+
+export type InngestEvent =
+    | SourceCreatedEvent
+    | ArtifactGenerateEvent;
 

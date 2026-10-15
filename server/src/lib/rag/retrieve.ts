@@ -23,6 +23,23 @@ export async function retrieveWorkspaceContext(
         embedding,
         RAG_TOP_K,
     );
+    console.log("[RAG] Query:", query);
+    console.log("[RAG] Workspace:", workspaceId);
+    console.log("[RAG] Matches returned:", matches.length);
+
+    console.log(
+        matches.map((match) => ({
+            id: match.id,
+            score: match.score,
+            metadataKeys: Object.keys(match.metadata ?? {}).join(", "),
+            sourceId: match.metadata?.sourceId,
+            sourceTitle: match.metadata?.sourceTitle,
+            textLength:
+                typeof match.metadata?.text === "string"
+                    ? match.metadata.text.length
+                    : 0,
+        })),
+    );
 
     const chunks: RetrievedChunk[] = [];
 
@@ -112,9 +129,8 @@ export function buildChatSystemPrompt(input: {
 
     const context = input.chunks
         .map((chunk, index) => {
-            const label = `[${index + 1}] ${chunk.sourceTitle} (${chunk.sourceType})${
-                chunk.page ? `, page ${chunk.page}` : ""
-            }`;
+            const label = `[${index + 1}] ${chunk.sourceTitle} (${chunk.sourceType})${chunk.page ? `, page ${chunk.page}` : ""
+                }`;
             return `${label}\n${chunk.text}`;
         })
         .join("\n\n");

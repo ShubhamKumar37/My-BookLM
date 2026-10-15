@@ -84,9 +84,9 @@ export const bulkDeleteSources = async (workspaceId, data) => {
 };
 
 // POST /api/workspace/source/:sourceId/reprocess
-export const reprocessSource = async (sourceId) => {
+export const reprocessSource = async (workspaceId, sourceId) => {
   const response = await api.post(
-    `/workspace/source/${sourceId}/reprocess`
+    `/workspace/source/reprocess/${sourceId}/${workspaceId}`
   );
 
   return response.data;

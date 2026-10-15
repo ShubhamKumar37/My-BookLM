@@ -4,6 +4,7 @@ import { NotFoundError } from "../types/app-error.js";
 import { CreateArtifactInput } from "../validators/artifact.validator.js";
 import { gatherSourceContext, generateArtifactContent } from "./artifact-generation.service.js";
 import { getWorkspaceByIdForUserId } from "./workspace.services.js";
+import { enqueueArtifactGeneration } from "../lib/artifact-event.js";
 
 export async function listArtifactsForWorkspace(
     workspaceId: string,
@@ -41,7 +42,11 @@ export async function deleteArtifactForWorkspace(
     await deleteArtifactRecord(artifactId);
 }
 
-export async function createArtifactForWorkspace(workspaceId: string, userId: string, input: CreateArtifactInput) {
+export async function createArtifactForWorkspace(
+    workspaceId: string,
+    userId: string,
+    input: CreateArtifactInput,
+) {
     await getWorkspaceByIdForUserId(workspaceId, userId);
 
     const context = await gatherSourceContext(
@@ -61,11 +66,28 @@ export async function createArtifactForWorkspace(workspaceId: string, userId: st
                 QUIZ: "Quiz",
                 MINDMAP: "Mind Map",
                 REPORT: "AI Report",
-            }[input.type]
-            } · ${new Date().toLocaleDateString()}`,
+            }[input.type]} · ${new Date().toLocaleDateString()}`,
         sourceIds: context.sourceIds,
         status: "PENDING",
     });
+
+    try {
+        await enqueueArtifactGeneration({
+            artifactId: artifact.id,
+            workspaceId,
+        });
+    } catch (error) {
+        console.error("Failed to enqueue artifact generation:", error);
+
+        await updateArtifactRecord(artifact.id, {
+            status: "FAILED",
+            metadata: {
+                processingError: "Failed to schedule artifact generation",
+            },
+        });
+
+        throw error;
+    }
 
     return artifact;
 }
@@ -78,7 +100,10 @@ export async function processArtifactById(artifactId: string) {
     await updateArtifactRecord(artifactId, { status: "PROCESSING" });
 
     try {
-        const context = await gatherSourceContext(artifact.workspaceId, artifact.sourceId);
+        const context = await gatherSourceContext(
+            artifact.workspaceId,
+            artifact.sourceIds,
+        );
         const content = await generateArtifactContent(artifact.type, context.text);
 
         return updateArtifactRecord(artifactId, {

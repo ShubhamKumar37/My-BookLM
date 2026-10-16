@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useArtifact } from "@/features/artifact/hooks/use-artifacts";
-
+import { downloadArtifact } from "@/features/artifact/utils/export-artifact";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -14,6 +14,8 @@ import {
     Position,
     Handle,
 } from "@xyflow/react";
+import { Download } from "lucide-react";
+import { appToast } from "@/lib/toast";
 
 function MarkdownContent({ content }) {
     if (!content) {
@@ -211,7 +213,7 @@ function QuizContent({ questions }) {
     if (submitted) {
         return (
             <section className="space-y-6">
-                <div className="rounded-2xl border p-6 text-center sm:p-10">
+                <div className="rounded-2xl border p-6 text-center sm:p-10 ">
                     <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary">
                         {percentage}%
                     </div>
@@ -618,7 +620,8 @@ export default function ArtifactDetailPage() {
                 </div>
             ) : (
                 <>
-                    <header className="space-y-3 border-b pb-6">
+
+                    <header className="space-y-4 border-b pb-6">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-full border px-3 py-1 text-xs font-medium">
                                 {artifact.type}
@@ -635,7 +638,38 @@ export default function ArtifactDetailPage() {
                         <p className="text-sm text-muted-foreground">
                             Created {new Date(artifact.createdAt).toLocaleString()}
                         </p>
+
+                        {
+                            artifact.status === "READY" && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        try {
+                                            const downloaded = downloadArtifact(artifact);
+
+                                            if (!downloaded) {
+                                                appToast.error(
+                                                    "Unable to export this artifact. Its content may be missing."
+                                                );
+                                                return;
+                                            }
+
+                                            appToast.success("Artifact download started!");
+                                        } catch (error) {
+                                            console.error("Artifact export failed:", error);
+                                            appToast.error(
+                                                "Failed to download artifact. Please try again."
+                                            );
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                                >
+                                    <Download className="size-4" />
+                                    Export Artifact
+                                </button>
+                            )}
                     </header>
+
 
                     {artifact.status === "PENDING" ||
                         artifact.status === "PROCESSING" ? (
